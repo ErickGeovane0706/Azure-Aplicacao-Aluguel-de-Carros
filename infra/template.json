@@ -1,0 +1,457 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "serviceBusConnectionString": {
+      "type": "SecureString",
+      "metadata": {
+        "description": "Connection String do Service Bus (SharedAccessKey)"
+      }
+    },
+    "vulnerabilityAssessments_Default_storageContainerPath": {
+      "type": "SecureString"
+    },
+    "connections_gmail_name": {
+      "defaultValue": "gmail",
+      "type": "String"
+    },
+    "sites_fapp_payment_name": {
+      "defaultValue": "fapp-payment",
+      "type": "String"
+    },
+    "connections_outlook_name": {
+      "defaultValue": "outlook",
+      "type": "String"
+    },
+    "connections_servicebus_name": {
+      "defaultValue": "servicebus",
+      "type": "String"
+    },
+    "vaults_aluguel_de_carros_name": {
+      "defaultValue": "aluguel-de-carros",
+      "type": "String"
+    },
+    "sites_f_app_aluguel_de_carros2_name": {
+      "defaultValue": "f-app-aluguel-de-carros2",
+      "type": "String"
+    },
+    "servers_sql_azure_aluguel_de_carros_name": {
+      "defaultValue": "sql-azure-aluguel-de-carros",
+      "type": "String"
+    },
+    "workflows_logicApp_aluguel_de_carros_name": {
+      "defaultValue": "logicApp-aluguel-de-carros",
+      "type": "String"
+    },
+    "containerapps_c_app_aluguel_de_carros_eastus_name": {
+      "defaultValue": "c-app-aluguel-de-carros-eastus",
+      "type": "String"
+    },
+    "serverfarms_ASP_AplicacaoAlugueldeCarros_a587_name": {
+      "defaultValue": "ASP-AplicacaoAlugueldeCarros-a587",
+      "type": "String"
+    },
+    "serverfarms_ASP_AplicacaoAlugueldeCarros_af24_name": {
+      "defaultValue": "ASP-AplicacaoAlugueldeCarros-af24",
+      "type": "String"
+    },
+    "namespaces_service_bus_aluguel_de_carros_name": {
+      "defaultValue": "service-bus-aluguel-de-carros",
+      "type": "String"
+    },
+    "userAssignedIdentities_oidc_msi_9844_name": {
+      "defaultValue": "oidc-msi-9844",
+      "type": "String"
+    },
+    "userAssignedIdentities_oidc_msi_a58a_name": {
+      "defaultValue": "oidc-msi-a58a",
+      "type": "String"
+    },
+    "userAssignedIdentities_oidc_msi_bb7d_name": {
+      "defaultValue": "oidc-msi-bb7d",
+      "type": "String"
+    },
+    "databaseAccounts_cosmodb_aluguel_de_carros_name": {
+      "defaultValue": "cosmodb-aluguel-de-carros",
+      "type": "String"
+    },
+    "containerGroups_bff_rent_car_instancia_name": {
+      "defaultValue": "bff-rent-car-instancia",
+      "type": "String"
+    },
+    "registries_acrAplicacaoAlugueldeCarros_name": {
+      "defaultValue": "acrAplicacaoAlugueldeCarros",
+      "type": "String"
+    },
+    "actionGroups_Application_Insights_Smart_Detection_name": {
+      "defaultValue": "Application Insights Smart Detection",
+      "type": "String"
+    },
+    "managedEnvironments_managedEnvironment_AplicacaoAlugue_b818_name": {
+      "defaultValue": "managedEnvironment-AplicacaoAlugue-b818",
+      "type": "String"
+    },
+    "workspaces_workspaceaplicacaoalugueldecarrosab72_name": {
+      "defaultValue": "workspaceaplicacaoalugueldecarrosab72",
+      "type": "String"
+    }
+  },
+  "variables": {},
+  "resources": [
+    {
+      "type": "Microsoft.App/managedEnvironments",
+      "apiVersion": "2025-02-02-preview",
+      "name": "[parameters('managedEnvironments_managedEnvironment_AplicacaoAlugue_b818_name')]",
+      "location": "East US",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "appLogsConfiguration": {
+          "destination": "log-analytics",
+          "logAnalyticsConfiguration": {
+            "customerId": "00000000-0000-0000-0000-000000000000",
+            "dynamicJsonColumns": false
+          }
+        },
+        "zoneRedundant": false,
+        "kedaConfiguration": {},
+        "daprConfiguration": {},
+        "customDomainConfiguration": {},
+        "workloadProfiles": [
+          {
+            "workloadProfileType": "Consumption",
+            "name": "Consumption",
+            "enableFips": false
+          }
+        ],
+        "peerAuthentication": {
+          "mtls": {
+            "enabled": false
+          }
+        },
+        "peerTrafficConfiguration": {
+          "encryption": {
+            "enabled": false
+          }
+        },
+        "publicNetworkAccess": "Enabled"
+      }
+    },
+    {
+      "type": "Microsoft.ContainerInstance/containerGroups",
+      "apiVersion": "2024-11-01-preview",
+      "name": "[parameters('containerGroups_bff_rent_car_instancia_name')]",
+      "location": "eastus",
+      "properties": {
+        "sku": "Standard",
+        "containers": [
+          {
+            "name": "[parameters('containerGroups_bff_rent_car_instancia_name')]",
+            "properties": {
+              "image": "acraplicacaoalugueldecarros.azurecr.io/bff-rent-car:v1",
+              "ports": [
+                {
+                  "protocol": "TCP",
+                  "port": 3001
+                }
+              ],
+              "environmentVariables": [
+                {
+                  "name": "SERVICE_BUS_CONNECTION_STRING",
+                  "value": "[parameters('serviceBusConnectionString')]"
+                },
+                {
+                  "name": "NOME_DA_FILA",
+                  "value": "queue-locacoes"
+                }
+              ],
+              "resources": {
+                "requests": {
+                  "memoryInGB": 1.5,
+                  "cpu": 1
+                }
+              }
+            }
+          }
+        ],
+        "initContainers": [],
+        "imageRegistryCredentials": [
+          {
+            "server": "acraplicacaoalugueldecarros.azurecr.io",
+            "username": "acrAplicacaoAlugueldeCarros"
+          }
+        ],
+        "ipAddress": {
+          "ports": [
+            {
+              "protocol": "TCP",
+              "port": 3001
+            }
+          ],
+          "ip": "0.0.0.0",
+          "type": "Public"
+        },
+        "osType": "Linux"
+      }
+    },
+    {
+      "type": "Microsoft.ContainerRegistry/registries",
+      "apiVersion": "2025-05-01-preview",
+      "name": "[parameters('registries_acrAplicacaoAlugueldeCarros_name')]",
+      "location": "eastus",
+      "sku": {
+        "name": "Basic",
+        "tier": "Basic"
+      },
+      "properties": {
+        "adminUserEnabled": true,
+        "policies": {
+          "quarantinePolicy": {
+            "status": "disabled"
+          },
+          "trustPolicy": {
+            "status": "disabled",
+            "type": "Notary"
+          },
+          "retentionPolicy": {
+            "days": 7,
+            "status": "disabled"
+          },
+          "exportPolicy": {
+            "status": "enabled"
+          },
+          "azureADAuthenticationAsArmPolicy": {
+            "status": "enabled"
+          },
+          "softDeletePolicy": {
+            "retentionDays": 7,
+            "status": "disabled"
+          }
+        },
+        "encryption": {
+          "status": "disabled"
+        },
+        "dataEndpointEnabled": false,
+        "publicNetworkAccess": "Enabled",
+        "networkRuleBypassOptions": "AzureServices",
+        "networkRuleBypassAllowedForTasks": false,
+        "zoneRedundancy": "Disabled",
+        "anonymousPullEnabled": false,
+        "metadataSearch": "Disabled",
+        "roleAssignmentMode": "LegacyRegistryPermissions",
+        "autoGeneratedDomainNameLabelScope": "Unsecure"
+      }
+    },
+    {
+      "type": "Microsoft.DocumentDB/databaseAccounts",
+      "apiVersion": "2025-05-01-preview",
+      "name": "[parameters('databaseAccounts_cosmodb_aluguel_de_carros_name')]",
+      "location": "Brazil South",
+      "tags": {
+        "defaultExperience": "Core (SQL)",
+        "hidden-workload-type": "Development/Testing",
+        "hidden-cosmos-mmspecial": ""
+      },
+      "kind": "GlobalDocumentDB",
+      "identity": {
+        "type": "None"
+      },
+      "properties": {
+        "publicNetworkAccess": "Enabled",
+        "enableAutomaticFailover": true,
+        "enableMultipleWriteLocations": false,
+        "isVirtualNetworkFilterEnabled": false,
+        "virtualNetworkRules": [],
+        "disableKeyBasedMetadataWriteAccess": false,
+        "enableFreeTier": false,
+        "enableAnalyticalStorage": false,
+        "analyticalStorageConfiguration": {
+          "schemaType": "WellDefined"
+        },
+        "databaseAccountOfferType": "Standard",
+        "enableMaterializedViews": false,
+        "capacityMode": "Serverless",
+        "defaultIdentity": "FirstPartyIdentity",
+        "networkAclBypass": "None",
+        "disableLocalAuth": false,
+        "enablePartitionMerge": false,
+        "enablePerRegionPerPartitionAutoscale": false,
+        "enableBurstCapacity": false,
+        "enablePriorityBasedExecution": false,
+        "defaultPriorityLevel": "High",
+        "minimalTlsVersion": "Tls12",
+        "consistencyPolicy": {
+          "defaultConsistencyLevel": "Session",
+          "maxIntervalInSeconds": 5,
+          "maxStalenessPrefix": 100
+        },
+        "locations": [
+          {
+            "locationName": "Brazil South",
+            "failoverPriority": 0,
+            "isZoneRedundant": false
+          }
+        ],
+        "cors": [],
+        "capabilities": [],
+        "ipRules": [],
+        "backupPolicy": {
+          "type": "Periodic",
+          "periodicModeProperties": {
+            "backupIntervalInMinutes": 240,
+            "backupRetentionIntervalInHours": 8,
+            "backupStorageRedundancy": "Local"
+          }
+        },
+        "networkAclBypassResourceIds": [],
+        "diagnosticLogSettings": {
+          "enableFullTextQuery": "None"
+        },
+        "capacity": {
+          "totalThroughputLimit": 4000
+        }
+      }
+    },
+    {
+      "type": "microsoft.insights/actionGroups",
+      "apiVersion": "2024-10-01-preview",
+      "name": "[parameters('actionGroups_Application_Insights_Smart_Detection_name')]",
+      "location": "Global",
+      "properties": {
+        "groupShortName": "SmartDetect",
+        "enabled": true,
+        "emailReceivers": [],
+        "smsReceivers": [],
+        "webhookReceivers": [],
+        "eventHubReceivers": [],
+        "itsmReceivers": [],
+        "azureAppPushReceivers": [],
+        "automationRunbookReceivers": [],
+        "voiceReceivers": [],
+        "logicAppReceivers": [],
+        "azureFunctionReceivers": [],
+        "armRoleReceivers": [
+          {
+            "name": "Monitoring Contributor",
+            "roleId": "749f88d5-cbae-40b8-bcfc-e573ddc772fa",
+            "useCommonAlertSchema": true
+          },
+          {
+            "name": "Monitoring Reader",
+            "roleId": "43d0d8ad-25c7-4714-9337-8ba259a9fe05",
+            "useCommonAlertSchema": true
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults",
+      "apiVersion": "2024-12-01-preview",
+      "name": "[parameters('vaults_aluguel_de_carros_name')]",
+      "location": "eastus",
+      "properties": {
+        "sku": {
+          "family": "A",
+          "name": "Standard"
+        },
+        "tenantId": "00000000-0000-0000-0000-000000000000",
+        "networkAcls": {
+          "bypass": "None",
+          "defaultAction": "Allow",
+          "ipRules": [],
+          "virtualNetworkRules": []
+        },
+        "accessPolicies": [],
+        "enabledForDeployment": false,
+        "enabledForDiskEncryption": false,
+        "enabledForTemplateDeployment": false,
+        "enableSoftDelete": true,
+        "softDeleteRetentionInDays": 90,
+        "enableRbacAuthorization": true,
+        "vaultUri": "[concat('https://', parameters('vaults_aluguel_de_carros_name'), '.vault.azure.net/')]",
+        "provisioningState": "Succeeded",
+        "publicNetworkAccess": "Enabled"
+      }
+    },
+    {
+      "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+      "apiVersion": "2025-01-31-preview",
+      "name": "[parameters('userAssignedIdentities_oidc_msi_9844_name')]",
+      "location": "chilecentral"
+    },
+    {
+      "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+      "apiVersion": "2025-01-31-preview",
+      "name": "[parameters('userAssignedIdentities_oidc_msi_a58a_name')]",
+      "location": "chilecentral"
+    },
+    {
+      "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+      "apiVersion": "2025-01-31-preview",
+      "name": "[parameters('userAssignedIdentities_oidc_msi_bb7d_name')]",
+      "location": "chilecentral"
+    },
+    {
+      "type": "Microsoft.OperationalInsights/workspaces",
+      "apiVersion": "2025-02-01",
+      "name": "[parameters('workspaces_workspaceaplicacaoalugueldecarrosab72_name')]",
+      "location": "eastus",
+      "properties": {
+        "sku": {
+          "name": "PerGB2018"
+        },
+        "retentionInDays": 30,
+        "features": {
+          "legacy": 0,
+          "searchVersion": 1,
+          "enableLogAccessUsingOnlyResourcePermissions": true
+        },
+        "workspaceCapping": {
+          "dailyQuotaGb": -1
+        },
+        "publicNetworkAccessForIngestion": "Enabled",
+        "publicNetworkAccessForQuery": "Enabled"
+      }
+    },
+    {
+      "type": "Microsoft.ServiceBus/namespaces",
+      "apiVersion": "2024-01-01",
+      "name": "[parameters('namespaces_service_bus_aluguel_de_carros_name')]",
+      "location": "chilecentral",
+      "sku": {
+        "name": "Basic",
+        "tier": "Basic"
+      },
+      "properties": {
+        "premiumMessagingPartitions": 0,
+        "minimumTlsVersion": "1.2",
+        "publicNetworkAccess": "Enabled",
+        "disableLocalAuth": false,
+        "zoneRedundant": true
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers",
+      "apiVersion": "2024-05-01-preview",
+      "name": "[parameters('servers_sql_azure_aluguel_de_carros_name')]",
+      "location": "chilecentral",
+      "kind": "v12.0",
+      "properties": {
+        "administratorLogin": "alugueldecarros",
+        "version": "12.0",
+        "minimalTlsVersion": "1.2",
+        "publicNetworkAccess": "Enabled",
+        "administrators": {
+          "administratorType": "ActiveDirectory",
+          "principalType": "User",
+          "login": "admin@dominio.com",
+          "sid": "00000000-0000-0000-0000-000000000000",
+          "tenantId": "00000000-0000-0000-0000-000000000000",
+          "azureADOnlyAuthentication": false
+        },
+        "restrictOutboundNetworkAccess": "Disabled"
+      }
+    }
+  ]
+}
