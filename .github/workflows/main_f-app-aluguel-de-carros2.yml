@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: './Functions/fnSBRentProcess' 
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: './Functions/fnSBRentProcess/fnSBRentProcess' 
   DOTNET_VERSION: '8.0.x' 
 
 jobs:
@@ -50,4 +50,5 @@ jobs:
           app-name: 'f-app-aluguel-de-carros2'
           slot-name: 'Production'
           package: '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/publish_output'
+
 
